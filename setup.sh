@@ -45,6 +45,8 @@ require "test_helper"
 describe Day$day do
   def setup
     @d = Day$day.new
+    @d.test_input <<~TEST
+    TEST
   end
 
   def test_part1
