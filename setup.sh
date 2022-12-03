@@ -42,7 +42,7 @@ echo "Creating $tst..."
 cat > "$tst" <<EOF
 require "test_helper"
 
-describe Day$day
+describe Day$day do
   def setup
     @d = Day$day.new
   end
