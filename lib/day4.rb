@@ -3,6 +3,10 @@ class Day4 < Base
     parse_input.count { |pairs| pairs[0].cover?(pairs[1]) || pairs[1].cover?(pairs[0]) }
   end
 
+  def part2
+    parse_input.count { |pairs| (pairs[0].to_a & pairs[1].to_a).any? }
+  end
+
   def parse_input
     raw_input.each_line.map do |line|
       line.split(",").map { |range| Range.new(*range.split("-").map(&:to_i)) }
