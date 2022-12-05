@@ -19,4 +19,8 @@ describe Day5 do
   def test_part1
     assert_equal "CMZ", @d.part1
   end
+
+  def test_part2
+    assert_equal "MCD", @d.part2
+  end
 end

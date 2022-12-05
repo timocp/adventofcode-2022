@@ -9,6 +9,14 @@ class Day5 < Base
     @stacks.map(&:last).join
   end
 
+  def part2
+    setup
+    @instructions.each do |inst|
+      @stacks[inst.to - 1] += @stacks[inst.from - 1].slice!(-inst.moves, inst.moves)
+    end
+    @stacks.map(&:last).join
+  end
+
   Instruction = Struct.new(:moves, :from, :to)
 
   def setup
