@@ -9,6 +9,7 @@ class Base
 
   def test_input(input)
     @raw_input = input
+    self
   end
 
   def number
