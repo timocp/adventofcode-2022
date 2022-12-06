@@ -1,16 +1,14 @@
 class Day6 < Base
   def part1
-    input = parse_input
-    0.upto(input.length) do |i|
-      return i + 4 if input[i, 4].uniq.size == 4
-    end
+    find_unique(4)
   end
 
   def part2
-    input = parse_input
-    0.upto(input.length) do |i|
-      return i + 14 if input[i, 14].uniq.size == 14
-    end
+    find_unique(14)
+  end
+
+  def find_unique(len)
+    parse_input.each_cons(len).find_index { |ary| ary.uniq.size == len } + len
   end
 
   def parse_input
