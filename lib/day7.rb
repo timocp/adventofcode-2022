@@ -8,6 +8,17 @@ class Day7 < Base
     each_directory(tree).map { |_name, size| size }.select { |size| size <= 100000 }.sum
   end
 
+  def part2
+    tree = parse_input
+    calc_size(tree)
+
+    disk_size = 70000000
+    needed_space = 30000000
+    unused_space = disk_size - tree[:size]
+    need_to_free = needed_space - unused_space
+    each_directory(tree).map { |_name, size| size }.select { |size| size >= need_to_free }.min
+  end
+
   # measure (and cache) size of each directory
   def calc_size(tree)
     tree[:size] ||=
