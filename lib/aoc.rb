@@ -1,3 +1,5 @@
+require "set"
+
 $LOAD_PATH << File.dirname(__FILE__)
 require "base"
 Dir.glob("#{File.dirname(__FILE__)}/day*.rb").sort.map { |lib| require File.basename(lib, ".rb") }
