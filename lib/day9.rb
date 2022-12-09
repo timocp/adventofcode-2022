@@ -13,51 +13,42 @@ class Day9 < Base
       [(other.x - x).abs, (other.y - y).abs].max
     end
 
+    def move(dir)
+      case dir
+      when "U" then self.y += 1
+      when "R" then self.x += 1
+      when "D" then self.y -= 1
+      when "L" then self.x -= 1
+      end
+    end
+
     def move_towards(other)
       self.class.new(x + (other.x <=> x), y + (other.y <=> y))
     end
   end
 
   def part1
-    hpos = Pos.new(0, 0)
-    tpos = Pos.new(0, 0)
-    visited = Set[tpos]
-    parse_input.each do |dir, count|
-      count.times do
-        case dir
-        when "U" then hpos.y += 1
-        when "R" then hpos.x += 1
-        when "D" then hpos.y -= 1
-        when "L" then hpos.x -= 1
-        end
-        tpos = tpos.move_towards(hpos) if tpos.distance(hpos) > 1
-        visited.add(tpos)
-      end
-    end
-    visited.size
+    measure(2)
   end
 
   def part2
-    ropes = 10.times.map { Pos.new(0, 0) }
-    visited = Set[ropes.last]
-    parse_input.each do |dir, count|
-      count.times do
-        case dir
-        when "U" then ropes.first.y += 1
-        when "R" then ropes.first.x += 1
-        when "D" then ropes.first.y -= 1
-        when "L" then ropes.first.x -= 1
-        end
-        ropes.each_with_index do |pos, i|
-          ropes[i] = pos.move_towards(ropes[i - 1]) if i > 0 && pos.distance(ropes[i - 1]) > 1
-        end
-        visited.add(ropes.last)
+    measure(10)
+  end
+
+  def measure(knots)
+    rope = knots.times.map { Pos.new(0, 0) }
+    visited = Set[rope.last]
+    parse_input.each do |dir|
+      rope.first.move(dir)
+      rope.each_with_index do |pos, i|
+        rope[i] = pos.move_towards(rope[i - 1]) if i > 0 && pos.distance(rope[i - 1]) > 1
       end
+      visited.add(rope.last)
     end
     visited.size
   end
 
   def parse_input
-    raw_input.each_line.map { |line| line.split(" ") }.map { |dir, count| [dir, count.to_i] }
+    raw_input.each_line.map { |line| line.split(" ") }.map { |dir, count| [dir] * count.to_i }.flatten
   end
 end
