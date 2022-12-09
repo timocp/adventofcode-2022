@@ -18,4 +18,18 @@ describe Day9 do
   def test_part1
     assert_equal 13, @d.part1
   end
+
+  def test_part2
+    assert_equal 1, @d.part2
+    assert_equal 36, @d.test_input(<<~TEST).part2
+      R 5
+      U 8
+      L 8
+      D 3
+      R 17
+      D 10
+      L 25
+      U 20
+    TEST
+  end
 end

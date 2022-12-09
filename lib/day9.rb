@@ -37,7 +37,27 @@ class Day9 < Base
     visited.size
   end
 
+  def part2
+    ropes = 10.times.map { Pos.new(0, 0) }
+    visited = Set[ropes.last]
+    parse_input.each do |dir, count|
+      count.times do
+        case dir
+        when "U" then ropes.first.y += 1
+        when "R" then ropes.first.x += 1
+        when "D" then ropes.first.y -= 1
+        when "L" then ropes.first.x -= 1
+        end
+        ropes.each_with_index do |pos, i|
+          ropes[i] = pos.move_towards(ropes[i - 1]) if i > 0 && pos.distance(ropes[i - 1]) > 1
+        end
+        visited.add(ropes.last)
+      end
+    end
+    visited.size
+  end
+
   def parse_input
-    @parse_input ||= raw_input.each_line.map { |line| line.split(" ") }.map { |dir, count| [dir, count.to_i] }
+    raw_input.each_line.map { |line| line.split(" ") }.map { |dir, count| [dir, count.to_i] }
   end
 end
