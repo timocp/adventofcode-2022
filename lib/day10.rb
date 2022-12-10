@@ -25,12 +25,26 @@ class Day10 < Base
       @during << @x
       @x += v
     end
+
+    def display
+      6.times.map do |row|
+        40.times.map do |col|
+          (@during[row * 40 + col] - col).abs <= 1 ? "#" : "."
+        end.join
+      end.join("\n")
+    end
   end
 
   def part1
     cpu = Cpu.new
     cpu.run(each_instruction)
     [20, 60, 100, 140, 180, 220].sum { |c| cpu.during[c - 1] * c }
+  end
+
+  def part2
+    cpu = Cpu.new
+    cpu.run(each_instruction)
+    cpu.display
   end
 
   def each_instruction
