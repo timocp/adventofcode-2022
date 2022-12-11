@@ -20,10 +20,6 @@ class Day11 < Base
       @gcd = monkeys.map(&:test_divisible_by).inject(&:*)
     end
 
-    def [](n)
-      @monkeys[n]
-    end
-
     def dont_worry
       @worry = false
     end
@@ -31,7 +27,7 @@ class Day11 < Base
     def round
       @monkeys.each do |monkey|
         while (item = monkey.inspect_item)
-          item = evaluate(monkey.operation, item) % @gcd
+          item = monkey.operation.call(item) % @gcd
           item /= 3 if @worry
           throw_to = if item % monkey.test_divisible_by == 0
                        monkey.throw_if_true
@@ -40,17 +36,6 @@ class Day11 < Base
                      end
           @monkeys[throw_to].items.push(item)
         end
-      end
-    end
-
-    def evaluate(operation, old)
-      op0 = operation[0] == "old" ? old : operation[0].to_i
-      op2 = operation[2] == "old" ? old : operation[2].to_i
-      case operation[1]
-      when "+" then op0 + op2
-      when "*" then op0 * op2
-      else
-        raise "Unknown operation: #{operation.inspect}"
       end
     end
 
@@ -80,10 +65,22 @@ class Day11 < Base
     rules = definition.split("\n").map { |rule| rule.split(":").map(&:strip) }
     Monkey.new.tap do |monkey|
       monkey.items = rules.detect { |rule| rule.first == "Starting items" }.last.split(", ").map(&:to_i)
-      monkey.operation = rules.detect { |rule| rule.first == "Operation" }.last.split.drop(2)
+      monkey.operation = parse_operation(*rules.detect { |rule| rule.first == "Operation" }.last.split.drop(2))
       monkey.test_divisible_by = rules.detect { |rule| rule.first == "Test" }.last.split.drop(2).first.to_i
       monkey.throw_if_true = rules.detect { |rule| rule.first == "If true" }.last.split.drop(3).first.to_i
       monkey.throw_if_false = rules.detect { |rule| rule.first == "If false" }.last.split.drop(3).first.to_i
+    end
+  end
+
+  def parse_operation(op0, op1, op2)
+    raise "Unexpected op0: #{op1}" unless op0 == "old"
+
+    op = op1.to_sym
+    rhs = op2 == "old" ? nil : op2.to_i
+    if op2 == "old"
+      proc { |old| old.send(op, old) }
+    else
+      proc { |old| old.send(op, rhs) }
     end
   end
 end
