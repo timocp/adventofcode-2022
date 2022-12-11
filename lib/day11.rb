@@ -16,19 +16,17 @@ class Day11 < Base
   class MonkeyContainer
     def initialize(monkeys)
       @monkeys = monkeys
-      @worry = true
-      @gcd = monkeys.map(&:test_divisible_by).inject(&:*)
+      @extra_worry = false
+      @lcm = monkeys.map(&:test_divisible_by).inject(&:*)
     end
 
-    def dont_worry
-      @worry = false
-    end
+    attr_accessor :extra_worry
 
     def round
       @monkeys.each do |monkey|
         while (item = monkey.inspect_item)
-          item = monkey.operation.call(item) % @gcd
-          item /= 3 if @worry
+          item = monkey.operation.call(item) % @lcm
+          item /= 3 unless @extra_worry
           throw_to = if item % monkey.test_divisible_by == 0
                        monkey.throw_if_true
                      else
@@ -52,7 +50,7 @@ class Day11 < Base
 
   def part2
     monkeys = parse_input
-    monkeys.dont_worry
+    monkeys.extra_worry = true
     10000.times { monkeys.round }
     monkeys.monkey_business
   end
