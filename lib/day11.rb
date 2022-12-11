@@ -16,10 +16,16 @@ class Day11 < Base
   class MonkeyContainer
     def initialize(monkeys)
       @monkeys = monkeys
+      @worry = true
+      @gcd = monkeys.map(&:test_divisible_by).inject(&:*)
     end
 
     def [](n)
       @monkeys[n]
+    end
+
+    def dont_worry
+      @worry = false
     end
 
     def round
@@ -27,8 +33,8 @@ class Day11 < Base
         # puts " Monkey #{i}:"
         while (item = monkey.inspect_item)
           # puts "  Monkey inspects an item with a worry level of #{item}"
-          item = evaluate(monkey.operation, item)
-          item /= 3
+          item = evaluate(monkey.operation, item) % @gcd
+          item /= 3 if @worry
           # puts "    Monkey gets bored with item. Worry level is divided by 3 to #{item}"
           throw_to = if item % monkey.test_divisible_by == 0
                        # puts "    Current worry level is divisible by #{monkey.test_divisible_by}."
@@ -66,6 +72,13 @@ class Day11 < Base
   def part1
     monkeys = parse_input
     20.times { monkeys.round }
+    monkeys.monkey_business
+  end
+
+  def part2
+    monkeys = parse_input
+    monkeys.dont_worry
+    10000.times { monkeys.round }
     monkeys.monkey_business
   end
 

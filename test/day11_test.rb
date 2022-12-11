@@ -37,4 +37,8 @@ describe Day11 do
   def test_part1
     assert_equal 10605, @d.part1
   end
+
+  def test_part2
+    assert_equal 2713310158, @d.part2
+  end
 end
