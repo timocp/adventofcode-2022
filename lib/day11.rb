@@ -29,21 +29,15 @@ class Day11 < Base
     end
 
     def round
-      @monkeys.each.with_index do |monkey, i|
-        # puts " Monkey #{i}:"
+      @monkeys.each do |monkey|
         while (item = monkey.inspect_item)
-          # puts "  Monkey inspects an item with a worry level of #{item}"
           item = evaluate(monkey.operation, item) % @gcd
           item /= 3 if @worry
-          # puts "    Monkey gets bored with item. Worry level is divided by 3 to #{item}"
           throw_to = if item % monkey.test_divisible_by == 0
-                       # puts "    Current worry level is divisible by #{monkey.test_divisible_by}."
                        monkey.throw_if_true
                      else
-                       # puts "    Current worry level is not divisible by #{monkey.test_divisible_by}."
                        monkey.throw_if_false
                      end
-          # puts "    Item with worry level #{item} is thrown to monkey #{throw_to}."
           @monkeys[throw_to].items.push(item)
         end
       end
@@ -53,15 +47,11 @@ class Day11 < Base
       op0 = operation[0] == "old" ? old : operation[0].to_i
       op2 = operation[2] == "old" ? old : operation[2].to_i
       case operation[1]
-      when "+" then (op0 + op2) # .tap { |x| puts "    Worry level increases by #{op2} to #{x}" }
-      when "*" then (op0 * op2) # .tap { |x| puts "    Worry level is multiplied by #{op2} to #{x}" }
+      when "+" then op0 + op2
+      when "*" then op0 * op2
       else
         raise "Unknown operation: #{operation.inspect}"
       end
-    end
-
-    def test_item(item, divisible_by)
-      item % divisible_by
     end
 
     def monkey_business
