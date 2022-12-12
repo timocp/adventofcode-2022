@@ -74,6 +74,7 @@ class Day12 < Base
       best = nil
       @map.each_with_index.map do |row, y|
         row.each_with_index.map do |_cell, x|
+          next unless x == 0 || y == 0 || y == @map.size - 1 || x == @map.first.size - 1
           next unless @map[y][x] == 0
           next unless (path = solve(Pos.new(x, y)))
 
