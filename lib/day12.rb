@@ -47,9 +47,9 @@ class Day12 < Base
       end
     end
 
-    def solve
-      queue = [@start]
-      visited = { @start => nil }
+    def solve(start = nil)
+      queue = [start || @start]
+      visited = { queue.first => nil }
       while (pos = queue.shift)
         if pos == @end
           list = [pos]
@@ -68,6 +68,19 @@ class Day12 < Base
           end
         end
       end
+    end
+
+    def solve_best_start
+      best = nil
+      @map.each_with_index.map do |row, y|
+        row.each_with_index.map do |_cell, x|
+          next unless @map[y][x] == 0
+          next unless (path = solve(Pos.new(x, y)))
+
+          best = path if best.nil? || path.size < best.size
+        end
+      end
+      best
     end
 
     def elevation(pos)
@@ -106,6 +119,10 @@ class Day12 < Base
 
   def part1
     parse_input.solve.size - 1
+  end
+
+  def part2
+    parse_input.solve_best_start.size - 1
   end
 
   def parse_input
