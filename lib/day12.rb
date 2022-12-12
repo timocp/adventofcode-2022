@@ -53,22 +53,15 @@ class Day12 < Base
       queue = [start]
       visited = { queue.first => nil }
       while (pos = queue.shift)
-        if backwards ? elevation(pos) == 0 : pos == finish
-          list = [pos]
-          while (prev = visited[list.last])
-            list << prev
-          end
-          return list.reverse
-        else
-          pos.each_neighbour do |nextpos|
-            next unless valid?(nextpos)
-            next if visited.key?(nextpos)
-            next if backwards && elevation(nextpos) + 1 < elevation(pos)
-            next if !backwards && elevation(nextpos) > elevation(pos) + 1
+        return extract_path(visited, pos) if backwards ? elevation(pos) == 0 : pos == finish
 
-            queue.push(nextpos)
-            visited[nextpos] = pos
-          end
+        pos.each_neighbour do |nextpos|
+          next if visited.key?(nextpos)
+          next if backwards && !valid_move?(from: nextpos, to: pos)
+          next if !backwards && !valid_move?(from: pos, to: nextpos)
+
+          queue.push(nextpos)
+          visited[nextpos] = pos
         end
       end
     end
@@ -105,6 +98,18 @@ class Day12 < Base
 
     def valid?(pos)
       pos.x >= 0 && pos.x < @map.first.size && pos.y >= 0 && pos.y < @map.size
+    end
+
+    def valid_move?(from:, to:)
+      valid?(to) && valid?(from) && elevation(to) <= elevation(from) + 1
+    end
+
+    def extract_path(visited, pos)
+      list = [pos]
+      while (prev = visited[list.last])
+        list << prev
+      end
+      list.reverse
     end
 
     def parse_cell(cell)
