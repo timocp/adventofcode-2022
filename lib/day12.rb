@@ -70,25 +70,13 @@ class Day12 < Base
     end
 
     def solve_best_start
-      best = nil
-      @map.each_with_index.map do |row, y|
-        row.each_with_index.map do |_cell, x|
-          next unless x == 0 || y == 0 || y == @map.size - 1 || x == @map.first.size - 1
-          next unless @map[y][x] == 0
-          next unless (path = solve(Pos.new(x, y)))
-
-          best = path if best.nil? || path.size < best.size
-        end
-      end
-      best
+      each_pos.map do |pos|
+        solve(pos) if edge?(pos) && elevation(pos) == 0
+      end.compact.min_by(&:size)
     end
 
     def elevation(pos)
       @map[pos.y][pos.x]
-    end
-
-    def valid?(pos)
-      pos.x >= 0 && pos.x < @map.first.size && pos.y >= 0 && pos.y < @map.size
     end
 
     def to_s
@@ -107,10 +95,28 @@ class Day12 < Base
 
     private
 
+    def each_pos
+      return to_enum(__method__) unless block_given?
+
+      @map.each_with_index do |row, y|
+        row.each_index do |x|
+          yield Pos.new(x, y)
+        end
+      end
+    end
+
+    def valid?(pos)
+      pos.x >= 0 && pos.x < @map.first.size && pos.y >= 0 && pos.y < @map.size
+    end
+
+    def edge?(pos)
+      pos.x == 0 || pos.y == 0 || pos.x == @map.first.size - 1 || pos.y == @map.size - 1
+    end
+
     def valid_moves
       @valid_moves ||=
         @map.each_with_index.map do |row, y|
-          row.each_with_index.map do |_cell, x|
+          row.each_index.map do |x|
             pos = Pos.new(x, y)
             pos.each_neighbour.select do |nextpos|
               valid?(nextpos) && elevation(nextpos) <= elevation(pos) + 1
