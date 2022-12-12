@@ -1,5 +1,4 @@
 class Day12 < Base
-  DIRECTIONS = %i[north east south west].freeze
   OFFSET = [[0, -1], [1, 0], [0, 1], [-1, 0]].freeze
 
   class Pos
@@ -15,8 +14,10 @@ class Day12 < Base
     end
 
     def each_neighbour
-      DIRECTIONS.each.with_index do |dir, i|
-        yield dir, self.class.new(x + OFFSET[i][0], y + OFFSET[i][1])
+      return to_enum(__method__) unless block_given?
+
+      OFFSET.each do |dx, dy|
+        yield self.class.new(x + dx, y + dy)
       end
     end
 
@@ -58,10 +59,8 @@ class Day12 < Base
           end
           return list.reverse
         else
-          pos.each_neighbour do |_dir, nextpos|
-            next unless valid?(nextpos)
+          valid_moves[pos.y][pos.x].each do |nextpos|
             next if visited.key?(nextpos)
-            next if elevation(nextpos) > elevation(pos) + 1
 
             queue.push(nextpos)
             visited[nextpos] = pos
@@ -107,6 +106,18 @@ class Day12 < Base
     end
 
     private
+
+    def valid_moves
+      @valid_moves ||=
+        @map.each_with_index.map do |row, y|
+          row.each_with_index.map do |_cell, x|
+            pos = Pos.new(x, y)
+            pos.each_neighbour.select do |nextpos|
+              valid?(nextpos) && elevation(nextpos) <= elevation(pos) + 1
+            end
+          end
+        end
+    end
 
     def parse_cell(cell)
       case cell
