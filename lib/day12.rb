@@ -49,16 +49,14 @@ class Day12 < Base
     end
 
     def solve(backwards: false)
-      start, finish = backwards ? [@end, @start] : [@start, @end]
-      queue = [start]
+      queue = [backwards ? @end : @start]
       visited = { queue.first => nil }
       while (pos = queue.shift)
-        return extract_path(visited, pos) if backwards ? elevation(pos) == 0 : pos == finish
+        return extract_path(visited, pos) if backwards ? elevation(pos) == 0 : pos == @end
 
         pos.each_neighbour do |nextpos|
           next if visited.key?(nextpos)
-          next if backwards && !valid_move?(from: nextpos, to: pos)
-          next if !backwards && !valid_move?(from: pos, to: nextpos)
+          next unless valid_move?(from: backwards ? nextpos : pos, to: backwards ? pos : nextpos)
 
           queue.push(nextpos)
           visited[nextpos] = pos
