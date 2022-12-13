@@ -29,7 +29,7 @@ class Day10 < Base
     def display
       6.times.map do |row|
         40.times.map do |col|
-          (@during[row * 40 + col] - col).abs <= 1 ? "#" : "."
+          (@during[row * 40 + col] - col).abs <= 1 ? "█" : " "
         end.join
       end.join("\n")
     end
