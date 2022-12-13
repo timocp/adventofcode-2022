@@ -9,8 +9,8 @@ def report(title)
   time = Time.now - t0
   if result.include?("\n")
     # multiline
-    print " " * (74 - title.length) + "#{time.truncate(1)}s\n"
-    puts result.chomp
+    puts "#{result.split("\n")[0].ljust(74 - title.length)}#{time.truncate(1)}s"
+    result.split("\n").drop(1).each { |line| puts "#{" " * title.length}#{line}" }
   else
     print result + " " * (74 - title.length - result.length) + "#{time.truncate(1)}s\n"
   end
