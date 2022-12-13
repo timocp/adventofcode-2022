@@ -34,7 +34,7 @@ describe Day13 do
     assert_equal 13, @d.part1
   end
 
-  def test_correct_order?
+  def test_compare_packets
     [
       [],
       [[]],
@@ -55,8 +55,8 @@ describe Day13 do
       [[8, 7, 6]],
       [9]
     ].each_cons(2) do |a, b|
-      assert @d.correct_order?(a, b)
-      refute @d.correct_order?(b, a)
+      assert_equal(-1, @d.compare_packets(a, b))
+      assert_equal(+1, @d.compare_packets(b, a))
     end
   end
 
