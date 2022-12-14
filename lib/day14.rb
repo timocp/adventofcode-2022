@@ -56,7 +56,7 @@ class Day14 < Base
     end
 
     def set_boundaries
-      @yrange = Range.new(0, @contents.keys.map(&:y).max)
+      @ymax = @contents.keys.map(&:y).max
       @xrange = Range.new(*@contents.keys.map(&:x).minmax)
     end
 
@@ -75,13 +75,13 @@ class Day14 < Base
     end
 
     def add_floor
-      floor = @yrange.max + 2
+      floor = @ymax + 2
       ((ENTRY.x - floor)..(ENTRY.x + floor)).each { |x| @contents[Pos.new(x, floor)] = :rock }
       set_boundaries
     end
 
     def to_s
-      @yrange.map do |y|
+      (0..@ymax).map do |y|
         @xrange.map do |x|
           case @contents[Pos.new(x, y)]
           when :entry then "+"
@@ -103,11 +103,24 @@ class Day14 < Base
       return nil if @contents[ENTRY] == :sand
 
       pos = ENTRY
-      while (nextpos = [pos.down, pos.down_left, pos.down_right].detect { |p| @contents[p].nil? })
+      while (nextpos = move_sand(pos))
         pos = nextpos
-        return nil if pos.y >= @yrange.max
+        return nil if pos.y >= @ymax
       end
       pos
+    end
+
+    def move_sand(pos)
+      nextpos = pos.down
+      return nextpos unless @contents.key?(nextpos)
+
+      nextpos = pos.down_left
+      return nextpos unless @contents.key?(nextpos)
+
+      nextpos = pos.down_right
+      return nextpos unless @contents.key?(nextpos)
+
+      nil
     end
 
     def parse_input(input)
