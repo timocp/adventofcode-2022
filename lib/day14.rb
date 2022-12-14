@@ -58,6 +58,14 @@ class Day14 < Base
       end
     end
 
+    # alternative fill method, by searching all paths instead of simulation
+    def fill2(pos = ENTRY)
+      return if @contents[pos] && @contents[pos] != :entry
+
+      @contents[pos] = :sand
+      [-1, 0, 1].each { |dx| fill2(Pos.new(pos.x + dx, pos.y + 1)) }
+    end
+
     def count_sand
       @contents.values.count { |v| v == :sand }
     end
@@ -125,7 +133,7 @@ class Day14 < Base
   end
 
   def part2
-    cave.tap(&:add_floor).tap(&:fill).count_sand
+    cave.tap(&:add_floor).tap(&:fill2).count_sand
   end
 
   def cave
