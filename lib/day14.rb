@@ -5,19 +5,7 @@ class Day14 < Base
       @y = y
     end
 
-    attr_reader :x, :y
-
-    def down
-      self.class.new(x, y + 1)
-    end
-
-    def down_left
-      self.class.new(x - 1, y + 1)
-    end
-
-    def down_right
-      self.class.new(x + 1, y + 1)
-    end
+    attr_accessor :x, :y
 
     def hash
       [x, y].hash
@@ -111,13 +99,13 @@ class Day14 < Base
     end
 
     def move_sand(pos)
-      nextpos = pos.down
+      nextpos = Pos.new(pos.x, pos.y + 1)
       return nextpos unless @contents.key?(nextpos)
 
-      nextpos = pos.down_left
+      nextpos.x -= 1
       return nextpos unless @contents.key?(nextpos)
 
-      nextpos = pos.down_right
+      nextpos.x += 2
       return nextpos unless @contents.key?(nextpos)
 
       nil
