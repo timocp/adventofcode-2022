@@ -51,9 +51,13 @@ class Day14 < Base
     def initialize(input)
       @contents = {} # Pos -> :entry | :rock | :sand
       parse_input(input)
+      set_boundaries
+      @contents[ENTRY] = :entry
+    end
+
+    def set_boundaries
       @yrange = Range.new(0, @contents.keys.map(&:y).max)
       @xrange = Range.new(*@contents.keys.map(&:x).minmax)
-      @contents[ENTRY] = :entry
     end
 
     def place_rock(from, to)
@@ -68,6 +72,12 @@ class Day14 < Base
 
     def count_sand
       @contents.values.count { |v| v == :sand }
+    end
+
+    def add_floor
+      floor = @yrange.max + 2
+      ((ENTRY.x - floor)..(ENTRY.x + floor)).each { |x| @contents[Pos.new(x, floor)] = :rock }
+      set_boundaries
     end
 
     def to_s
@@ -88,8 +98,10 @@ class Day14 < Base
     private
 
     # returns the next position sand can drop to
-    # nil if it will fall forever
+    # nil if it will fall forever (part 1) or cannot be dropped (part 2)
     def drop_sand
+      return nil if @contents[ENTRY] == :sand
+
       pos = ENTRY
       while (nextpos = [pos.down, pos.down_left, pos.down_right].detect { |p| @contents[p].nil? })
         pos = nextpos
@@ -111,7 +123,11 @@ class Day14 < Base
     cave.tap(&:fill).count_sand
   end
 
+  def part2
+    cave.tap(&:add_floor).tap(&:fill).count_sand
+  end
+
   def cave
-    Cave.new(raw_input)
+    @cave ||= Cave.new(raw_input)
   end
 end
