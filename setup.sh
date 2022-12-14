@@ -2,9 +2,8 @@
 
 set -e
 
-mkdir -p input lib test
+mkdir -p lib test
 
-year=2022
 day=$1
 
 if [ "$day" = "" ]; then
@@ -18,16 +17,13 @@ tst="test/day${day}_test.rb"
 if ! git diff --exit-code > /dev/null; then
     echo "There are uncommitted changes" 2>&1
     exit 1
-elif [ -e "$input" ]; then
-    echo "Already have day $day" 2>&1
+fi
+if [ -e "$lib" ]; then
+    echo "Already exists: $lib" 2>&1
     exit 1
 fi
 
-# download input (assumes w3m is already logged in)
-url="https://adventofcode.com/$year/day/$day/input"
-echo "Fetching $url..."
-w3m "$url" > "$input"
-file "$input"
+./download.sh
 
 echo "Creating $lib..."
 cat > "$lib" <<EOF
