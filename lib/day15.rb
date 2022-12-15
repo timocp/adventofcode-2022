@@ -5,7 +5,7 @@ class Day15 < Base
       @y = y
     end
 
-    attr_reader :x, :y
+    attr_accessor :x, :y
 
     def manhattan_distance(other)
       [x - other.x, y - other.y].map(&:abs).sum
@@ -40,6 +40,39 @@ class Day15 < Base
       dy = (pos.y - y).abs
       dx = (beacon_distance - dy).abs
       Range.new(pos.x - dx, pos.x + dx) if dy < beacon_distance
+    end
+
+    def cover?(other_pos)
+      pos.manhattan_distance(other_pos) <= beacon_distance
+    end
+
+    def each_edge
+      top = pos.y - beacon_distance - 1
+      right = pos.x + beacon_distance + 1
+      bottom = pos.y + beacon_distance + 1
+      left = pos.x - beacon_distance - 1
+
+      edge = Pos.new(pos.x, top)
+      until edge.x == right
+        yield edge
+        edge.x += 1
+        edge.y += 1
+      end
+      until edge.y == bottom
+        yield edge
+        edge.x -= 1
+        edge.y += 1
+      end
+      until edge.x == left
+        yield edge
+        edge.x -= 1
+        edge.y -= 1
+      end
+      until edge.y == top
+        yield edge
+        edge.x += 1
+        edge.y -= 1
+      end
     end
 
     def to_s
@@ -79,10 +112,31 @@ class Day15 < Base
     candidate
   end
 
+  def neighbours_covered?(pos)
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].each do |dx, dy|
+      neighbour = Pos.new(pos.x + dx, pos.y + dy)
+      return false if sensors.none? { |s| s.cover?(neighbour) }
+    end
+    true
+  end
+
+  def check_edge(sensor, xrange, yrange)
+    sensor.each_edge do |pos|
+      next unless yrange.cover?(pos.y) && xrange.cover?(pos.x)
+
+      # still way too slow (~40s, and only because it's next to the 5th sensor!)
+      next if sensors.any? { |s| s.cover?(pos) }
+      return pos if neighbours_covered?(pos)
+    end
+    nil
+  end
+
   def part2(mid = 2000000)
-    0.upto(mid * 2).each do |y|
-      if (x = find_gap(y))
-        return Pos.new(x, y).tuning_frequency
+    yrange = 0..(mid * 2)
+    xrange = Range.new(*sensors.map { |s| s.pos.x }.minmax)
+    sensors.each do |s|
+      if (pos = check_edge(s, xrange, yrange))
+        return pos.tuning_frequency
       end
     end
   end
