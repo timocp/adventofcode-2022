@@ -43,27 +43,30 @@ class Day15 < Base
     end
   end
 
-  def part1(y: 2000000)
-    sensors = parse_input
+  def ordered_ranges(y)
+    sensors.map { |s| s.range(y) }.compact.sort_by(&:min)
+  end
 
+  def beacons_on_row(y)
+    sensors.map(&:closest_beacon).select { |b| b.y == y }.uniq.count
+  end
+
+  def part1(y: 2000000)
     lastx = nil
-    sensors.map { |s| s.range(y) }.compact.sort_by(&:min).sum do |range|
+    ordered_ranges(y).sum do |range|
       if lastx && range.min <= lastx
-        if range.max <= lastx
-          0
-        else
-          range.last - lastx
-        end
+        range.max <= lastx ? 0 : range.last - lastx
       else
         range.size
       end.tap { lastx = [range.last, lastx].compact.max }
-    end - sensors.map(&:closest_beacon).select { |b| b.y == y }.uniq.count
+    end - beacons_on_row(y)
   end
 
-  def parse_input
-    raw_input.each_line
-             .map { |line| line.match(/^Sensor at x=(-?\d+), y=(-?\d+): closest beacon is at x=(-?\d+), y=(-?\d+)$/) }
-             .each_with_index
-             .map { |m, i| Sensor.new(i, Pos.new(m[1].to_i, m[2].to_i), Pos.new(m[3].to_i, m[4].to_i)) }
+  def sensors
+    @sensors ||=
+      raw_input.each_line
+               .map { |line| line.match(/^Sensor at x=(-?\d+), y=(-?\d+): closest beacon is at x=(-?\d+), y=(-?\d+)$/) }
+               .each_with_index
+               .map { |m, i| Sensor.new(i, Pos.new(m[1].to_i, m[2].to_i), Pos.new(m[3].to_i, m[4].to_i)) }
   end
 end
