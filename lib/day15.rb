@@ -11,6 +11,10 @@ class Day15 < Base
       [x - other.x, y - other.y].map(&:abs).sum
     end
 
+    def tuning_frequency
+      4000000 * x + y
+    end
+
     def hash
       [x, y].hash
     end
@@ -51,7 +55,7 @@ class Day15 < Base
     sensors.map(&:closest_beacon).select { |b| b.y == y }.uniq.count
   end
 
-  def part1(y: 2000000)
+  def part1(y = 2000000)
     lastx = nil
     ordered_ranges(y).sum do |range|
       if lastx && range.min <= lastx
@@ -60,6 +64,27 @@ class Day15 < Base
         range.size
       end.tap { lastx = [range.last, lastx].compact.max }
     end - beacons_on_row(y)
+  end
+
+  def find_gap(y)
+    lastx = nil
+    candidate = nil
+    ordered_ranges(y).each do |range|
+      if lastx
+        next if range.max <= lastx
+        return lastx + 1 if range.min == lastx + 2
+      end
+      lastx = range.max
+    end
+    candidate
+  end
+
+  def part2(mid = 2000000)
+    0.upto(mid * 2).each do |y|
+      if (x = find_gap(y))
+        return Pos.new(x, y).tuning_frequency
+      end
+    end
   end
 
   def sensors

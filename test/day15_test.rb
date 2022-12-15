@@ -25,10 +25,14 @@ describe Day15 do
     @d.test_input <<~TEST
       Sensor at x=0, y=11: closest beacon is at x=2, y=10
     TEST
-    assert_equal 4, @d.part1(y: 10)
+    assert_equal 4, @d.part1(10)
   end
 
   def test_part1
-    assert_equal 26, @d.part1(y: 10)
+    assert_equal 26, @d.part1(10)
+  end
+
+  def test_part2
+    assert_equal 56000011, @d.part2(10)
   end
 end
