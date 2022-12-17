@@ -25,12 +25,21 @@ class Day17 < Base
 
     def display
       (
-        @rows.reverse.map { |row| "|#{row.map { |r| r || "." }.join}|" } + ["+-------+"]
+        @rows.each_index.map do |y|
+          s = @rows[y].to_s(2).rjust(7, "0").tr("10", "#.")
+          if @falling_rock && y >= @falling_y && y < @falling_y + @falling_height
+            line = @falling_rock[y - @falling_y]
+            6.downto(0) do |b|
+              s[6 - b] = "@" if line & 1 << b > 0
+            end
+          end
+          "y=#{y.to_s.ljust(5)} |#{s}|"
+        end.reverse + ["        +-------+"]
       ).join("\n")
     end
 
     def top_rock_index
-      @rows.rindex(&:any?) || -1
+      @rows.rindex { |row| row > 0 } || -1
     end
 
     private
@@ -38,95 +47,69 @@ class Day17 < Base
     def add_rock
       rock = @rocks.next
       make_space_for_rock(rock)
-      @falling_y = top_rock_index + 4
-      @falling_height = rock.each_line.count
-      rock.each_line.with_index(1).each do |line, dy|
-        line.chars.each_with_index do |c, x|
-          @rows[@falling_y + @falling_height - dy][x + 2] = "@" if c == "#"
-        end
-      end
+      @falling_y = top_rock_index + 4  # y position of the bottom row of the fallign rock
+      @falling_rock = rock.dup         # array of bitmasks representing the falling rock
+      @falling_height = rock.size      # number of rows the falling rock takes up
       debug "A new rock begins falling"
     end
 
     def make_space_for_rock(rock)
-      ((top_rock_index + 4 + rock.each_line.count) - @rows.size).times do
-        @rows.push(Array.new(7))
+      ((top_rock_index + 4 + rock.size) - @rows.size).times do
+        @rows.push(0)
       end
     end
 
     def apply_jet
       dir = @jet_pattern.next
-      move_sideways(dir) if can_move_sideways?(dir)
-      debug "Jet of gas pushes rock #{dir == 1 ? "right" : "left"}"
+      if can_move_sideways?(dir)
+        move_sideways(dir)
+        debug "Jet of gas pushes rock #{dir == 1 ? "left" : "right"}"
+      else
+        debug "Jet of gas pushes rock #{dir == 1 ? "left" : "right"}, but nothing happens"
+      end
     end
 
     def can_move_sideways?(dir)
-      @falling_y.upto(@falling_y + @falling_height - 1).each do |y|
-        @rows[y].each.with_index.select { |r, _| r == "@" }.each do |_, x|
-          xp = x + dir
-          return false if xp < 0 || xp > 6 || @rows[y][xp] == "#"
-        end
+      0.upto(@falling_height - 1).none? do |dy|
+        (dir == -1 && @falling_rock[dy] & 1 == 1) ||
+          (dir == 1 && @falling_rock[dy] & 64 == 64) ||
+          (@rows[@falling_y + dy] & @falling_rock[dy] << dir > 0)
       end
-      true
     end
 
     def move_sideways(dir)
-      @falling_y.upto(@falling_y + @falling_height - 1).each do |y|
-        @rows[y].replace(
-          7.times.map do |x|
-            if @rows[y][x] == "#"
-              "#"
-            elsif @rows[y][x - dir] == "@"
-              "@"
-            end
-          end
-        )
-      end
+      @falling_rock.map! { |r| r << dir }
     end
 
     def can_move_down?
-      return false if @falling_y == 0
-
-      (@falling_y - 1).upto(@falling_y + @falling_height - 2).each do |y|
-        @rows[y].each.with_index do |r, x|
-          return false if r == "#" && @rows[y + 1][x] == "@"
+      @falling_y > 0 &&
+        0.upto(@falling_height - 1).none? do |dy|
+          @rows[@falling_y + dy - 1] & @falling_rock[dy] > 0
         end
-      end
-      true
     end
 
     def move_down
-      (@falling_y - 1).upto(@falling_y + @falling_height - 2).each do |y|
-        @rows[y].replace(
-          7.times.map do |x|
-            if @rows[y][x] == "#"
-              "#"
-            elsif @rows[y + 1][x] == "@"
-              "@"
-            end
-          end
-        )
-      end
-      @rows[@falling_y + @falling_height - 1].map! { |r| r == "@" ? nil : r }
       @falling_y -= 1
       debug "Rock falls 1 unit"
     end
 
     def finish_falling
-      @falling_y.upto(@falling_y + @falling_height - 1).each do |y|
-        @rows[y].map! { |r| r == "@" ? "#" : r }
+      0.upto(@falling_height - 1).each do |dy|
+        @rows[@falling_y + dy] = @rows[@falling_y + dy] | @falling_rock[dy]
       end
+      @falling_rock = nil
       debug "Rock falls 1 unit, causing it to come to rest"
     end
   end
 
+  # bitmasks representing each rock shape entering at column 3
   ROCKS = [
-    "####",
-    " # \n###\n # ",
-    "  #\n  #\n###",
-    "#\n#\n#\n#",
-    "##\n##"
-  ].freeze
+    [30],             # horizontal line
+    [8, 28, 8],       # cross
+    [28, 4, 4],       # backwards L - NOTE: reversed to match y indexes
+    [16, 16, 16, 16], # vertical line
+    [24, 24]          # square block
+  ].map(&:freeze).freeze
 
   def part1
     chamber = Chamber.new(parse_input)
@@ -137,8 +120,8 @@ class Day17 < Base
   def parse_input
     raw_input.chomp.each_char.map do |c|
       case c
-      when "<" then -1
-      when ">" then 1
+      when "<" then 1
+      when ">" then -1
       end
     end
   end
