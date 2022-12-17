@@ -2,9 +2,13 @@ class Day17 < Base
   class Chamber
     def initialize(jet_pattern)
       @rows = []
-      @rocks = ROCKS.cycle
-      @jet_pattern = jet_pattern.cycle
+      @rock_index = 0
+      @jet_pattern = jet_pattern
+      @jet_index = 0
+      @rocks_dropped = 0
     end
+
+    attr_reader :rocks_dropped
 
     def debug(msg)
       # puts "\n#{msg}:\n#{display}"
@@ -21,6 +25,7 @@ class Day17 < Base
           break
         end
       end
+      @rocks_dropped += 1
     end
 
     def display
@@ -33,7 +38,7 @@ class Day17 < Base
               s[6 - b] = "@" if line & 1 << b > 0
             end
           end
-          "y=#{y.to_s.ljust(5)} |#{s}|"
+          "y=#{y.to_s.ljust(5)} |#{s}| #{@rows[y].to_s.rjust(3)}"
         end.reverse + ["        +-------+"]
       ).join("\n")
     end
@@ -42,10 +47,22 @@ class Day17 < Base
       @rows.rindex { |row| row > 0 } || -1
     end
 
+    def detect_repetition
+      seen = {}
+      loop do
+        drop_rock
+        key = [@rows[top_rock_index], @jet_index, @rock_index]
+        return [rocks_dropped - seen[key][0], top_rock_index - seen[key][1]] if seen.key?(key)
+
+        seen[key] = [rocks_dropped, top_rock_index]
+      end
+    end
+
     private
 
     def add_rock
-      rock = @rocks.next
+      rock = ROCKS[@rock_index]
+      @rock_index = (@rock_index + 1) % ROCKS.size
       make_space_for_rock(rock)
       @falling_y = top_rock_index + 4  # y position of the bottom row of the fallign rock
       @falling_rock = rock.dup         # array of bitmasks representing the falling rock
@@ -60,7 +77,8 @@ class Day17 < Base
     end
 
     def apply_jet
-      dir = @jet_pattern.next
+      dir = @jet_pattern[@jet_index]
+      @jet_index = (@jet_index + 1) % @jet_pattern.size
       if can_move_sideways?(dir)
         move_sideways(dir)
         debug "Jet of gas pushes rock #{dir == 1 ? "left" : "right"}"
@@ -117,12 +135,33 @@ class Day17 < Base
     chamber.top_rock_index + 1
   end
 
+  P2_ROCKS = 1000000000000
+
+  def part2
+    # run sim for 1000 iterations
+    chamber = Chamber.new(parse_input)
+    reps, height = chamber.detect_repetition
+
+    # from this position, we know that:
+    # rep (1740) rocks dropped will add height (2716) rows
+    # and still be in the same state
+
+    # how many times to simulate the rep drops
+    simulated_reps = (P2_ROCKS - chamber.rocks_dropped) / reps
+
+    # process a few more to get us to the right final height
+    chamber.drop_rock while chamber.rocks_dropped + (simulated_reps * reps) < P2_ROCKS
+
+    chamber.top_rock_index + (simulated_reps * height) + 1
+  end
+
   def parse_input
-    raw_input.chomp.each_char.map do |c|
-      case c
-      when "<" then 1
-      when ">" then -1
-      end
-    end
+    @parse_input ||=
+      raw_input.chomp.each_char.map do |c|
+        case c
+        when "<" then 1
+        when ">" then -1
+        end
+      end.freeze
   end
 end
