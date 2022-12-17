@@ -1,4 +1,8 @@
 class Day17 < Base
+  LEFT = 1
+  RIGHT = -1
+  DIRECTION = { LEFT => "left", RIGHT => "right" }.freeze
+
   class Chamber
     def initialize(jet_pattern)
       @rows = []
@@ -40,7 +44,7 @@ class Day17 < Base
           end
           "y=#{y.to_s.ljust(5)} |#{s}| #{@rows[y].to_s.rjust(3)}"
         end.reverse + ["        +-------+"]
-      ).join("\n")
+      )[0, 20].join("\n")
     end
 
     def top_rock_index
@@ -63,15 +67,15 @@ class Day17 < Base
     def add_rock
       rock = ROCKS[@rock_index]
       @rock_index = (@rock_index + 1) % ROCKS.size
-      make_space_for_rock(rock)
       @falling_y = top_rock_index + 4  # y position of the bottom row of the fallign rock
       @falling_rock = rock.dup         # array of bitmasks representing the falling rock
       @falling_height = rock.size      # number of rows the falling rock takes up
+      make_space_for_rock
       debug "A new rock begins falling"
     end
 
-    def make_space_for_rock(rock)
-      ((top_rock_index + 4 + rock.size) - @rows.size).times do
+    def make_space_for_rock
+      ((top_rock_index + 4 + @falling_rock.size) - @rows.size).times do
         @rows.push(0)
       end
     end
@@ -81,16 +85,16 @@ class Day17 < Base
       @jet_index = (@jet_index + 1) % @jet_pattern.size
       if can_move_sideways?(dir)
         move_sideways(dir)
-        debug "Jet of gas pushes rock #{dir == 1 ? "left" : "right"}"
+        debug "Jet of gas pushes rock #{DIRECTION[dir]}"
       else
-        debug "Jet of gas pushes rock #{dir == 1 ? "left" : "right"}, but nothing happens"
+        debug "Jet of gas pushes rock #{DIRECTION[dir]}, but nothing happens"
       end
     end
 
     def can_move_sideways?(dir)
       0.upto(@falling_height - 1).none? do |dy|
-        (dir == -1 && @falling_rock[dy] & 1 == 1) ||
-          (dir == 1 && @falling_rock[dy] & 64 == 64) ||
+        (dir == RIGHT && @falling_rock[dy] & 1 == 1) ||
+          (dir == LEFT && @falling_rock[dy] & 64 == 64) ||
           (@rows[@falling_y + dy] & @falling_rock[dy] << dir > 0)
       end
     end
@@ -138,7 +142,6 @@ class Day17 < Base
   P2_ROCKS = 1000000000000
 
   def part2
-    # run sim for 1000 iterations
     chamber = Chamber.new(parse_input)
     reps, height = chamber.detect_repetition
 
@@ -159,8 +162,8 @@ class Day17 < Base
     @parse_input ||=
       raw_input.chomp.each_char.map do |c|
         case c
-        when "<" then 1
-        when ">" then -1
+        when "<" then LEFT
+        when ">" then RIGHT
         end
       end.freeze
   end
