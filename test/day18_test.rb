@@ -23,4 +23,8 @@ describe Day18 do
   def test_part1
     assert_equal 64, @d.part1
   end
+
+  def test_part2
+    assert_equal 58, @d.part2
+  end
 end
