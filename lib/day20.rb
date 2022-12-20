@@ -1,19 +1,19 @@
 class Day20 < Base
   def part1
-    mixed = mix(parse_input, 1)
-    zero_at = mixed.index(0)
-    1.upto(3).map { |n| mixed[(zero_at + n * 1000) % mixed.size] }.sum
+    decrypt(parse_input)
   end
-
-  DECRYPTION_KEY = 811589153
 
   def part2
-    mixed = mix(parse_input.map { |num| num * DECRYPTION_KEY }, 10)
+    decrypt(parse_input, rounds: 10, key: 811589153)
+  end
+
+  def decrypt(file, rounds: 1, key: 1)
+    mixed = mix(file.map { |num| num * key }, rounds: rounds)
     zero_at = mixed.index(0)
     1.upto(3).map { |n| mixed[(zero_at + n * 1000) % mixed.size] }.sum
   end
 
-  def mix(file, rounds)
+  def mix(file, rounds:)
     mix = file.size.times.to_a # an array of the indexes into file[]
 
     rounds.times do
