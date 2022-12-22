@@ -27,22 +27,26 @@ class Day22 < Base
       parse_map(map)
       @player = Pos.new(@map.keys.select { |p| p.y == 1 }.map(&:x).min, 1)
       @facing = 0
+      @cube = false
     end
 
     attr_reader :player, :facing
+    attr_accessor :cube
 
     def move(steps)
       # print "Moving from #{player} #{steps} times facing #{facing} "
       steps.times do
-        nextpos = ahead(player, facing)
-        raise "Tried to move off-durface #{nextpos}" unless @map.key?(nextpos)
+        nextpos, nextfacing = ahead(player, facing)
+        raise "Tried to move off-surface #{nextpos}" unless @map.key?(nextpos)
 
         case @map[nextpos]
-        when :open then @player = nextpos
+        when :open
+          @player = nextpos
+          @facing = nextfacing
         when :wall then break
         end
       end
-      # puts " -> #{player}"
+      # puts " -> #{player} #{facing}"
     end
 
     def turn_right
@@ -53,6 +57,8 @@ class Day22 < Base
       @facing = (@facing - 1) % 4
     end
 
+    private
+
     def ahead(pos, facing)
       nextpos = case facing
                 when 3 then Pos.new(pos.x, pos.y - 1)
@@ -61,9 +67,11 @@ class Day22 < Base
                 when 2 then Pos.new(pos.x - 1, pos.y)
                 end
       if @map.key?(nextpos)
-        nextpos
+        [nextpos, facing]
+      elsif @cube
+        wrap_on_cube(nextpos, facing)
       else
-        wrap(pos, facing)
+        [wrap(pos, facing), facing]
       end
     end
 
@@ -76,7 +84,52 @@ class Day22 < Base
       end
     end
 
-    private
+    # hardcoded to my input for now.  TODO: make it general purpose (?)
+    def wrap_on_cube(pos, facing)
+      if pos.x == 50 && (1..50).include?(pos.y)
+        # wrap west from A to west edge of D new facing east
+        [Pos.new(1, 151 - pos.y), 0]
+      elsif pos.x == 50 && (51..100).include?(pos.y)
+        # wrap west from C to north edge of D new facing south
+        [Pos.new(pos.y - 50, 101), 1]
+      elsif pos.x == 0 && (101..150).include?(pos.y)
+        # wrap west from D to west edge of A new facing east
+        [Pos.new(51, 151 - pos.y), 0]
+      elsif pos.x == 0 && (151..200).include?(pos.y)
+        # wrap west from F to north edge of A new facing south
+        [Pos.new(pos.y - 100, 1), 1]
+      elsif pos.x == 51 && (151..200).include?(pos.y)
+        # wrap east from F to south edge of E new facing north
+        [Pos.new(pos.y - 100, 150), 3]
+      elsif pos.x == 101 && (51..100).include?(pos.y)
+        # wrap east from C to south edge of B new facing north
+        [Pos.new(pos.y + 50, 50), 3]
+      elsif pos.x == 101 && (101..150).include?(pos.y)
+        # wrap east from E to east edge of B new facing west
+        [Pos.new(150, 151 - pos.y), 2]
+      elsif pos.x == 151 && (1..50).include?(pos.y)
+        # wrap east from B to east edge of E new facing west
+        [Pos.new(100, 151 - pos.y), 2]
+      elsif pos.y == 0 && (51..100).include?(pos.x)
+        # wrap north from A to west edge of F fasting east
+        [Pos.new(1, pos.x + 100), 0]
+      elsif pos.y == 0 && (101..150).include?(pos.x)
+        # wrap north from B to south edge of F facing north
+        [Pos.new(pos.x - 100, 200), 3]
+      elsif pos.y == 100 && (1..50).include?(pos.x)
+        # wrap north from D to west edge of C facing east
+        [Pos.new(51, pos.x + 50), 0]
+      elsif pos.y == 51 && (101..150).include?(pos.x)
+        # wrap south from B to east edge of C facing west
+        [Pos.new(100, pos.x - 50), 2]
+      elsif pos.y == 151 && (51..100).include?(pos.x)
+        # wrap south from E to east edge of F facing west
+        [Pos.new(50, pos.x + 100), 2]
+      elsif pos.y == 201 && (1..50).include?(pos.x)
+        # wrap south from F to north edge of B facing south
+        [Pos.new(pos.x + 100, 1), 1]
+      end
+    end
 
     def parse_map(map)
       @map = {}
@@ -94,6 +147,16 @@ class Day22 < Base
 
   def part1
     board, directions = parse_input
+    process_directions(board, directions)
+  end
+
+  def part2
+    board, directions = parse_input
+    board.cube = true
+    process_directions(board, directions)
+  end
+
+  def process_directions(board, directions)
     directions.each do |command, num|
       case command
       when :move then board.move(num)

@@ -24,4 +24,8 @@ describe Day22 do
   def test_part1
     assert_equal 6032, @d.part1
   end
+
+  def test_part2
+    # assert_equal 5031, @d.part1
+  end
 end
