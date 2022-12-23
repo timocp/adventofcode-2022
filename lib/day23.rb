@@ -8,7 +8,7 @@ class Day23 < Base
     attr_reader :x, :y
 
     def hash
-      [x, y].hash
+      x * 10000 + y
     end
 
     def eql?(other)
