@@ -22,22 +22,13 @@ class Day23 < Base
     alias inspect to_s
   end
 
-  class Elf
-    def initialize(x, y)
-      @pos = Pos.new(x, y)
-    end
-
-    attr_accessor :pos
-  end
-
   class Game
     def initialize(elves)
-      @elves = elves
       @rounds = 0
-      @occupied = elves.map(&:pos).to_set
+      @occupied = elves.to_set
     end
 
-    attr_reader :elves, :rounds
+    attr_reader :occupied, :rounds
 
     NORTH = 0
     SOUTH = 1
@@ -58,11 +49,11 @@ class Day23 < Base
     end
 
     def xrange
-      Range.new(*elves.map(&:pos).map(&:x).minmax)
+      Range.new(*occupied.map(&:x).minmax)
     end
 
     def yrange
-      Range.new(*elves.map(&:pos).map(&:y).minmax)
+      Range.new(*occupied.map(&:y).minmax)
     end
 
     def display
@@ -76,11 +67,11 @@ class Day23 < Base
 
     private
 
+    # proposed moves is array of [from, to]
     def propose_moves
-      elves.each_with_index
-           .reject { |elf, _| isolated?(elf.pos) }
-           .map { |elf, i| [valid_direction(elf.pos), i] }
-           .reject { |nextpos, _| nextpos.nil? }
+      occupied.reject { |from| isolated?(from) }
+              .map { |from| [from, valid_direction(from)] }
+              .reject { |_, to| to.nil? }
     end
 
     # returns NORTH if N, NE, NW is clear, etc
@@ -103,11 +94,10 @@ class Day23 < Base
     end
 
     def apply_moves(moves)
-      targets = moves.map(&:first).tally
-      moves.select { |nextpos, _| targets[nextpos] == 1 }.count do |(nextpos, i)|
-        @occupied.delete(elves[i].pos)
-        @occupied.add(nextpos)
-        elves[i].pos = nextpos
+      targets = moves.map(&:last).tally
+      moves.select { |_, to| targets[to] == 1 }.count do |from, to|
+        @occupied.delete(from)
+        @occupied.add(to)
       end
     end
   end
@@ -115,7 +105,7 @@ class Day23 < Base
   def part1
     game = Game.new(parse_input)
     10.times { game.round }
-    game.xrange.size * game.yrange.size - game.elves.size
+    game.xrange.size * game.yrange.size - game.occupied.size
   end
 
   def part2
@@ -127,7 +117,7 @@ class Day23 < Base
 
   def parse_input
     raw_input.each_line.with_index.map do |line, y|
-      line.each_char.with_index.select { |cell, _| cell == "#" }.map { |_, x| Elf.new(x, y) }
+      line.each_char.with_index.select { |cell, _| cell == "#" }.map { |_, x| Pos.new(x, y) }
     end.flatten
   end
 end
