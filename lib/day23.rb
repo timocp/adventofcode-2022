@@ -34,6 +34,7 @@ class Day23 < Base
     def initialize(elves)
       @elves = elves
       @rounds = 0
+      @occupied = elves.map(&:pos).to_set
     end
 
     attr_reader :elves, :rounds
@@ -51,11 +52,9 @@ class Day23 < Base
     ].freeze
 
     def round
-      @occupied = elves.map(&:pos).to_set
       apply_moves(propose_moves) > 0
     ensure
       @rounds += 1
-      @occupied = nil
     end
 
     def xrange
@@ -67,11 +66,10 @@ class Day23 < Base
     end
 
     def display
-      occupied = elves.map(&:pos).to_set
       xx = xrange
       yrange.map do |y|
         xx.map do |x|
-          occupied.include?(Pos.new(x, y)) ? "#" : "."
+          @occupied.include?(Pos.new(x, y)) ? "#" : "."
         end.join
       end.join("\n")
     end
@@ -87,7 +85,7 @@ class Day23 < Base
 
     # returns NORTH if N, NE, NW is clear, etc
     def valid_direction(pos)
-      offset = 4.times.to_a.rotate(@rounds % 4).map { |dir| DIR_OFFSETS[dir] }.detect do |offsets|
+      offset = 4.times.map { |i| (i + @rounds) % 4 }.map { |dir| DIR_OFFSETS[dir] }.detect do |offsets|
         offsets.none? { |(dx, dy)| @occupied.include?(Pos.new(pos.x + dx, pos.y + dy)) }
       end&.first
       Pos.new(pos.x + offset[0], pos.y + offset[1]) if offset
@@ -107,6 +105,8 @@ class Day23 < Base
     def apply_moves(moves)
       targets = moves.map(&:first).tally
       moves.select { |nextpos, _| targets[nextpos] == 1 }.count do |(nextpos, i)|
+        @occupied.delete(elves[i].pos)
+        @occupied.add(nextpos)
         elves[i].pos = nextpos
       end
     end
