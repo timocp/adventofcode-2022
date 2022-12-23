@@ -29,4 +29,8 @@ describe Day23 do
     TEST
     assert_equal 25, @d.part1
   end
+
+  def test_part2
+    assert_equal 20, @d.part2
+  end
 end

@@ -52,9 +52,10 @@ class Day23 < Base
 
     def round
       @occupied = elves.map(&:pos).to_set
-      apply_moves(propose_moves)
-      @occupied = nil
+      apply_moves(propose_moves) > 0
+    ensure
       @rounds += 1
+      @occupied = nil
     end
 
     def xrange
@@ -105,7 +106,7 @@ class Day23 < Base
 
     def apply_moves(moves)
       targets = moves.map(&:first).tally
-      moves.select { |nextpos, _| targets[nextpos] == 1 }.each do |(nextpos, i)|
+      moves.select { |nextpos, _| targets[nextpos] == 1 }.count do |(nextpos, i)|
         elves[i].pos = nextpos
       end
     end
@@ -113,9 +114,15 @@ class Day23 < Base
 
   def part1
     game = Game.new(parse_input)
-    # 10.times { puts; game.round; puts "== End of Round #{game.rounds} =="; puts game.display }
     10.times { game.round }
     game.xrange.size * game.yrange.size - game.elves.size
+  end
+
+  def part2
+    game = Game.new(parse_input)
+    while game.round
+    end
+    game.rounds
   end
 
   def parse_input
