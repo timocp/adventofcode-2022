@@ -6,7 +6,7 @@ class Day24 < Base
       @data = [Array.new(width * height) { 0 }]
       @entrance = nil
       @exit = nil
-      @repeat = @width * @height
+      @repeat = @width.lcm(@height)
     end
 
     attr_reader :width, :height
@@ -47,10 +47,11 @@ class Day24 < Base
     end
 
     def next_wind(x, y)
-      (@data.last[((y + 1) % height) * width + x] & NORTH) |
-        (@data.last[((y - 1) % height) * width + x] & SOUTH) |
-        (@data.last[y * width + (x + 1) % width] & WEST) |
-        (@data.last[y * width + (x - 1) % width] & EAST)
+      wind = @data.last
+      (wind[((y + 1) % height) * width + x] & NORTH) |
+        (wind[((y - 1) % height) * width + x] & SOUTH) |
+        (wind[y * width + (x + 1) % width] & WEST) |
+        (wind[y * width + (x - 1) % width] & EAST)
     end
 
     def display(time)
