@@ -81,12 +81,11 @@ class Day24 < Base
   end
 
   def part1
-    path_through_valley(valley, [valley.entrance, -1, 0], [valley.exit, valley.height - 1])
+    @part1 ||= path_through_valley(valley, [valley.entrance, -1, 0], [valley.exit, valley.height - 1])
   end
 
   def part2
-    t = path_through_valley(valley, [valley.entrance, -1, 0], [valley.exit, valley.height - 1])
-    t = path_through_valley(valley, [valley.exit, valley.height, t], [valley.entrance, 0])
+    t = path_through_valley(valley, [valley.exit, valley.height, part1], [valley.entrance, 0])
     path_through_valley(valley, [valley.entrance, -1, t], [valley.exit, valley.height - 1])
   end
 
