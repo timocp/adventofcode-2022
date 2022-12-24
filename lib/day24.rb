@@ -81,7 +81,13 @@ class Day24 < Base
   end
 
   def part1
-    path_through_valley(parse_input)
+    path_through_valley(valley, [valley.entrance, -1, 0], [valley.exit, valley.height - 1])
+  end
+
+  def part2
+    t = path_through_valley(valley, [valley.entrance, -1, 0], [valley.exit, valley.height - 1])
+    t = path_through_valley(valley, [valley.exit, valley.height, t], [valley.entrance, 0])
+    path_through_valley(valley, [valley.entrance, -1, t], [valley.exit, valley.height - 1])
   end
 
   class State
@@ -108,19 +114,24 @@ class Day24 < Base
     alias inspect to_s
   end
 
-  def path_through_valley(v)
+  # NOTE: "to" can't be in the wall so need to add 1 to account for the final move
+  def path_through_valley(v, from, to)
     queue = Set.new # set instead of array to avoid duplicates
-    queue.add State.new(v.entrance, -1, 0)
+    queue.add State.new(*from)
     while (s = queue.first)
       queue.delete(s)
-      return s.time + 1 if s.x == v.exit && s.y == v.height - 1
+      return s.time + 1 if s.x == to[0] && s.y == to[1]
 
       queue.add State.new(s.x, s.y + 1, s.time + 1) if v.clear?(s.x, s.y + 1, s.time + 1)
       queue.add State.new(s.x + 1, s.y, s.time + 1) if v.clear?(s.x + 1, s.y, s.time + 1)
-      queue.add State.new(s.x, s.y, s.time + 1) if s.y == -1 || v.clear?(s.x, s.y, s.time + 1)
+      queue.add State.new(s.x, s.y, s.time + 1) if s.y == -1 || s.y == valley.height || v.clear?(s.x, s.y, s.time + 1)
       queue.add State.new(s.x - 1, s.y, s.time + 1) if v.clear?(s.x - 1, s.y, s.time + 1)
       queue.add State.new(s.x, s.y - 1, s.time + 1) if v.clear?(s.x, s.y - 1, s.time + 1)
     end
+  end
+
+  def valley
+    @valley ||= parse_input
   end
 
   def parse_input
